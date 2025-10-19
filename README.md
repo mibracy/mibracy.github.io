@@ -25,6 +25,5 @@ generateTable(["web", "batch", "database"])
 
 ## Link to Service
 
-Visit my website to play around with test services:
+Visit [website](https://mibracy.github.io/) to test service.
 
-[https://mibracy.github.io/](https://mibracy.github.io/)
