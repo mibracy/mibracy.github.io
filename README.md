@@ -1,2 +1,2 @@
 # mibracy.github.io
-[Click Me](mibracy.github.io)
+[Click Me](https://mibracy.github.io)
