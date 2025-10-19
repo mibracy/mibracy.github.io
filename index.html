@@ -221,7 +221,7 @@
           html_to_be_rendered += `<select multiple id="${selected_tier}_select">`;
 
           service_list.forEach(service => {
-            html_to_be_rendered += `<option value="${service.service_name}">${service.service_name} (${service.release_tag})</option>`;
+            html_to_be_rendered += `<option value="${service.service_name} : ${service.release_tag}">${service.service_name} (${service.release_tag})</option>`;
           });
 
           html_to_be_rendered += `</select></div>`;
@@ -259,51 +259,115 @@
       });
     }
 
-    document.getElementById("downloadButton").addEventListener("click", function () {
-      let selectedServices = {};
-      for (var tier in service_tier_map) {
-        const selectElement = document.getElementById(`${tier}_select`);
-        // The line below is the corrected part.
-        selectedServices[tier] = Array.from(selectElement.selectedOptions).map(option => option.value);
-      }
+//     document.getElementById("downloadButton").addEventListener("click", function () {
+//       let selectedServices = {};
+//       for (var tier in service_tier_map) {
+//         const selectElement = document.getElementById(`${tier}_select`);
+//         // The line below is the corrected part.
+//         selectedServices[tier] = Array.from(selectElement.selectedOptions).map(option => option.value);
+//       }
 
-      // Only proceed if there is at least one selection
-      if (Object.values(selectedServices).some(arr => arr.length > 0)) {
-        const jsonString = JSON.stringify(selectedServices, null, 2);
-        const blob = new Blob([jsonString], { type: "application/json" });
-        const url = URL.createObjectURL(blob);
+//       // Only proceed if there is at least one selection
+//       if (Object.values(selectedServices).some(arr => arr.length > 0)) {
+//         const jsonString = JSON.stringify(selectedServices, null, 2);
+//         const blob = new Blob([jsonString], { type: "application/json" });
+//         const url = URL.createObjectURL(blob);
 
-        const a = document.createElement("a");
-        a.href = url;
-        const timestamp = new Date().toISOString().replace(/[-:.]/g, "").slice(0, 15);
-        a.download = `selected_services_${timestamp}Z.json`; document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-      } else {
-        alert("Please select at least one service to download the file.");
-      }
-    });
+//         const a = document.createElement("a");
+//         a.href = url;
+//         const timestamp = new Date().toISOString().replace(/[-:.]/g, "").slice(0, 15);
+//         a.download = `selected_services_${timestamp}Z.json`; document.body.appendChild(a);
+//         a.click();
+//         document.body.removeChild(a);
+//         URL.revokeObjectURL(url);
+//       } else {
+//         alert("Please select at least one service to download the file.");
+//       }
+//     });
 
-    document.getElementById("copyButton").addEventListener("click", function () {
-      let selectedServices = {};
-      for (var tier in service_tier_map) {
-        const selectElement = document.getElementById(`${tier}_select`);
-        selectedServices[tier] = Array.from(selectElement.selectedOptions).map(option => option.value);
-      }
+//     document.getElementById("copyButton").addEventListener("click", function () {
+//       let selectedServices = {};
+//       for (var tier in service_tier_map) {
+//         const selectElement = document.getElementById(`${tier}_select`);
+//         selectedServices[tier] = Array.from(selectElement.selectedOptions).map(option => option.value);
+//       }
 
-      if (Object.values(selectedServices).some(arr => arr.length > 0)) {
-        const jsonString = JSON.stringify(selectedServices, null, 2);
-        navigator.clipboard.writeText(jsonString).then(function () {
-          alert('Template copied to clipboard!');
-        }, function (err) {
-          console.error('Could not copy text: ', err);
-          alert('Failed to copy template to clipboard.');
-        });
-      } else {
-        alert("Please select at least one service to copy.");
+//       if (Object.values(selectedServices).some(arr => arr.length > 0)) {
+//         const jsonString = JSON.stringify(selectedServices, null, 2);
+//         navigator.clipboard.writeText(jsonString).then(function () {
+//           alert('Template copied to clipboard!');
+//         }, function (err) {
+//           console.error('Could not copy text: ', err);
+//           alert('Failed to copy template to clipboard.');
+//         });
+//       } else {
+//         alert("Please select at least one service to copy.");
+//       }
+//     });
+
+  document.getElementById("downloadButton").addEventListener("click", function () {
+    let selectedServices = {};
+    for (var tier in service_tier_map) {
+      const selectElement = document.getElementById(`${tier}_select`);
+      selectedServices[tier] = Array.from(selectElement.selectedOptions).map(option => {
+        const [serviceName, tag] = option.value.split(':');
+        return { [serviceName]: { "tag": tag } };
+      });
+    }
+
+    const formattedServices = Object.entries(selectedServices).reduce((acc, [tier, services]) => {
+      if (services.length > 0) {
+        acc[tier] = services;
       }
-    });
+      return acc;
+    }, {});
+
+    if (Object.keys(formattedServices).length > 0) {
+      const jsonString = JSON.stringify(formattedServices, null, 2);
+      const blob = new Blob([jsonString], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      const timestamp = new Date().toISOString().replace(/[-:.]/g, "").slice(0, 15);
+      a.download = `selected_services_${timestamp}Z.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } else {
+      alert("Please select at least one service to download the file.");
+    }
+  });
+
+  document.getElementById("copyButton").addEventListener("click", function () {
+    let selectedServices = {};
+    for (var tier in service_tier_map) {
+      const selectElement = document.getElementById(`${tier}_select`);
+      selectedServices[tier] = Array.from(selectElement.selectedOptions).map(option => {
+        const [serviceName, tag] = option.value.split(':');
+        return { [serviceName]: { "tag": tag } };
+      });
+    }
+
+    const formattedServices = Object.entries(selectedServices).reduce((acc, [tier, services]) => {
+      if (services.length > 0) {
+        acc[tier] = services;
+      }
+      return acc;
+    }, {});
+
+    if (Object.keys(formattedServices).length > 0) {
+      const jsonString = JSON.stringify(formattedServices, null, 2);
+      navigator.clipboard.writeText(jsonString).then(function () {
+        alert('Template copied to clipboard!');
+      }, function (err) {
+        console.error('Could not copy text: ', err);
+        alert('Failed to copy template to clipboard.');
+      });
+    } else {
+      alert("Please select at least one service to copy.");
+    }
+  });
   </script>
 
   <div id="redBotStripe"></div>
